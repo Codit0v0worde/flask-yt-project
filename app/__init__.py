@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from .extensions import db, migrate, login_manager, assets
 from .config import Config
 from .bundles import bundles, register_bundles
@@ -37,8 +37,9 @@ def create_app(config_class=Config):
     with app.app_context():
         db.create_all()
 
-        #  404
+    # Обработчик ошибки 404
     @app.errorhandler(404)
     def not_found_error(error):
         return render_template('404.html'), 404
+
     return app
