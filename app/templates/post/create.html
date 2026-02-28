@@ -1,0 +1,12 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Добавление темы{% endblock %}
+
+{% block content %}
+<form method="post" action="{{ url_for('post.create') }}" class="form-control d-flex flex-column gap-2">
+    {{ form.hidden_tag() }}
+    {{ form.subject(class="form-control", placeholder="Название предмета") }}
+    {{ form.student(class="form-control") }}
+    <input value="Добавить" type="submit" class="btn btn-success">
+</form>
+{% endblock %}

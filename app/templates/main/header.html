@@ -1,0 +1,31 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">
+            <img src="{{ url_for('static', filename='img/diplom.jpg') }}" alt="logo" width="48" height="48" class="d-inline-block align-text-top">
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+                <li class="nav-item"><a href="{{ url_for('post.all_posts') }}" class="nav-link active">Главная</a></li>
+                {% if current_user.is_authenticated and current_user.status == 'teacher'%}
+                <li><a href="{{ url_for('post.create') }}" class="nav-link">Добавить тему</a></li>
+                {% endif%}
+            </ul>
+            <form class="d-flex" role="search">
+                <input class="form-control me-2" type="search" placeholder="Поиск" aria-label="Поиск">
+                <button class="btn btn-outline-light" type="submit">Найти</button>
+            </form>
+            <div class="text-end ms-3">
+                {% if current_user.is_authenticated%}
+                    <span>Добро пожаловать , {{ current_user.login}}</span>
+                    <a href="{{url_for('user.logout')}}" class="btn btn-outline-light me-2">Выйти</a>
+                {% else %}
+                 <a href="{{ url_for('user.login') }}">Войти</a>
+                 <a href="{{ url_for('user.register') }}" class="btn btn-warning">Регистрация</a>
+                {% endif%}
+            </div>
+        </div>
+    </div>
+</nav>

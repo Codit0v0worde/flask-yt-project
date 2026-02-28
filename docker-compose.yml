@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+    ports:
+      - "54321:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U enginiger -d mydb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  flask:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    container_name: flask
+    volumes:
+      - ~/.uploads/images/flask-yt:/app/app/static/upload
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    depends_on:
+      postgres:
+        condition: service_healthy   # ждём, пока postgres станет готов
+    expose:
+      - 8080
+
+  nginx:
+    build:
+      dockerfile: ./Dockerfile
+      context: ./nginx/
+    container_name: nginx
+    env_file:
+      - .env
+    depends_on:
+      - flask
+    ports:
+      - "8080:80"
+
+volumes:
+  pg_data:

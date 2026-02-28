@@ -1,0 +1,83 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Темы{% endblock %}
+
+{% block style %}
+    {% assets 'post_all_css' %}
+    <link rel="stylesheet" href="{{ASSET_URL}}">
+    {% endassets %}
+{% endblock %}
+
+{% block content %}
+<!-- Форма фильтрации по преподавателям -->
+<form method="post" action="{{ url_for('post.all_posts') }}" class="mb-3">
+    {{ form.hidden_tag() }}
+    <div class="row g-3 align-items-center">
+        <div class="col-auto">
+            {{ form.teacher.label(class="col-form-label") }}
+        </div>
+        <div class="col-auto">
+            {{ form.teacher(class="form-select") }}
+        </div>
+        <div class="col-auto">
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
+    </div>
+</form>
+
+<div class="table-responsive custom-table-responsive">
+    <table class="table custom-table">
+        <thead>
+            <tr>
+                <th scope="col">Фото</th>
+                <th scope="col">Преподаватель</th>
+                <th scope="col">Тема</th>
+                <th scope="col">Студент</th>
+                {% if current_user.is_authenticated %}
+                <th scope="col">Действия</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for post in posts %}
+            <tr>
+                <td>
+                    <img src="{{ url_for('static', filename='upload/' + post.teacher_user.avatar) }}"
+                         alt="Преподаватель"
+                         width="50" height="50"
+                         class="rounded-circle">
+                </td>
+                <td>{{ post.teacher_user.name }}</td>
+                <td>{{ post.subject }}</td>
+                <td>
+                    <img src="{{ url_for('static', filename='upload/' + post.student_user.avatar) }}"
+                         alt="Студент"
+                         width="50" height="50"
+                         class="rounded-circle">
+                    {{ post.student_user.name }}
+                </td>
+                {% if current_user.is_authenticated and post.teacher == current_user.id %}
+                <td>
+                    <a href="{{ url_for('post.update', id=post.id) }}" class="btn btn-sm btn-secondary">
+                        <i class="fa fa-pencil"></i>
+                    </a>
+                    <form action="{{ url_for('post.delete', id=post.id) }}" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Удалить запись?')">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </form>
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+
+{% block script %}
+    {% assets 'post_all_js' %}
+    <script type="text/javascript" src="{{ ASSET_URL }}"></script>  
+    {% endassets %}
+{% endblock %}

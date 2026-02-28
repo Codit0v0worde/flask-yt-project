@@ -1,0 +1,52 @@
+@import url('fonts.css');
+
+body {
+    background: #1a1e1f;  /* тёмный, почти чёрный фон */
+    color: #e0e0e0;
+    font-family: 'Montserrat', sans-serif;
+    line-height: 1.6;
+}
+
+.page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.content {
+    flex: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+h1, h2, h3 {
+    font-weight: 600;
+    color: #fff;
+}
+
+a {
+    color: #ffc107;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+a:hover {
+    color: #ffdb6e;
+}
+
+/* Стили для футера (дополнительно к Bootstrap) */
+footer .nav-link {
+    padding: 0.25rem 0;
+    color: rgba(255,255,255,0.7);
+}
+
+footer .nav-link:hover {
+    color: #fff;
+    background-color: transparent;
+}
+
+footer p {
+    margin-top: 1rem;
+    color: rgba(255,255,255,0.5);
+}

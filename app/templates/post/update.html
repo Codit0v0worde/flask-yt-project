@@ -1,0 +1,25 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Редактирование темы{% endblock %}
+
+{% block content %}
+<form method="post" class="form-control d-flex flex-column gap-2">
+    {{ form.hidden_tag() }}
+    {{ form.subject(class="form-control", placeholder="Название предмета") }}
+    {% if form.subject.errors %}
+        <div class="text-danger">
+            {% for error in form.subject.errors %}<small>{{ error }}</small><br>{% endfor %}
+        </div>
+    {% endif %}
+
+    {{ form.student(class="form-control") }}
+    {% if form.student.errors %}
+        <div class="text-danger">
+            {% for error in form.student.errors %}<small>{{ error }}</small><br>{% endfor %}
+        </div>
+    {% endif %}
+
+    <input type="submit" value="Обновить" class="btn btn-success">
+    <a href="{{ url_for('post.all_posts') }}" class="btn btn-secondary">Отмена</a>
+</form>
+{% endblock %}
