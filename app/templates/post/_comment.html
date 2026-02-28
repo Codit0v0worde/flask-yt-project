@@ -1,0 +1,44 @@
+{# Проверяем глубину вложенности, чтобы избежать бесконечной рекурсии #}
+{% if depth is not defined %}
+    {% set depth = 0 %}
+{% endif %}
+
+{% if depth < 10 %}
+    <div class="comment" id="comment-{{ comment.id }}">
+        <div class="comment-meta">
+            <strong>{{ comment.user.name }}</strong> 
+            <span class="text-muted">({{ comment.user.status }})</span>
+            <span class="float-end">{{ comment.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+        </div>
+        <div class="comment-content">
+            {{ comment.content | nl2br }}
+        </div>
+        {% if comment.file_path %}
+            <div class="comment-file">
+                <a href="{{ url_for('static', filename='uploads/comments/' + comment.file_path) }}" target="_blank" class="btn btn-sm btn-outline-info mt-2">
+                    <i class="fa fa-file"></i> Скачать файл
+                </a>
+            </div>
+        {% endif %}
+
+        <!-- Кнопка ответа (для авторизованных) -->
+        {% if current_user.is_authenticated %}
+            <button class="btn btn-sm btn-outline-secondary mt-2 reply-btn" data-parent="{{ comment.id }}">Ответить</button>
+        {% endif %}
+
+        <!-- Вложенные ответы (рекурсивный вызов с увеличением глубины) -->
+        {% if comment.replies %}
+            <div class="replies mt-3">
+                {% for reply in comment.replies %}
+                    {% with comment=reply, depth=depth+1 %}
+                        {% include 'post/_comment.html' %}
+                    {% endwith %}
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+{% else %}
+    <div class="comment text-muted">
+        ... (слишком глубокая вложенность комментариев) ...
+    </div>
+{% endif %}

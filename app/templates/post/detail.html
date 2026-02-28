@@ -1,0 +1,80 @@
+{% extends 'main/base.html' %}
+
+{% block title %}{{ post.subject }}{% endblock %}
+
+{% block style %}
+    {% assets 'post_all_css' %}
+    <link rel="stylesheet" href="{{ASSET_URL}}">
+    {% endassets %}
+    <style>
+        .comment {
+            border-left: 3px solid #d4a373;
+            margin-bottom: 15px;
+            padding-left: 15px;
+        }
+        .comment.reply {
+            margin-left: 30px;
+            border-left-color: #b5835a;
+        }
+        .comment-meta {
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        .comment-content {
+            margin: 5px 0;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Информация о теме -->
+    <div class="card bg-dark text-white mb-4">
+        <div class="card-body">
+            <h2 class="card-title">{{ post.subject }}</h2>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Преподаватель:</strong> {{ post.teacher_user.name }}</p>
+                    <p><strong>Студент:</strong> {{ post.student_user.name }}</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p><strong>Дата создания:</strong> {{ post.date.strftime('%d.%m.%Y %H:%M') }}</p>
+                    {% if post.file_path %}
+                        <p><a href="{{ url_for('static', filename='uploads/files/' + post.file_path) }}" class="btn btn-sm btn-outline-info" target="_blank">Скачать файл лекции</a></p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Форма добавления комментария -->
+    <div class="card bg-dark text-white mb-4">
+        <div class="card-body">
+            <h4>Добавить комментарий</h4>
+            <form method="post" enctype="multipart/form-data" action="{{ url_for('post.add_comment', post_id=post.id) }}">
+                {{ form.hidden_tag() }}
+                {{ form.parent_id(id='parent_id') }}
+                <div class="mb-3">
+                    {{ form.content(class="form-control bg-dark text-white", placeholder="Ваш комментарий...") }}
+                </div>
+                <div class="mb-3">
+                    {{ form.file(class="form-control bg-dark text-white") }}
+                </div>
+                <button type="submit" class="btn btn-success">Отправить</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Список комментариев -->
+    <div class="comments-section">
+        <h3>Комментарии</h3>
+        {% if comments %}
+            {% for comment in comments if not comment.parent_id %}
+                {% include 'post/_comment.html' %}
+            {% endfor %}
+        {% else %}
+            <p>Пока нет комментариев.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

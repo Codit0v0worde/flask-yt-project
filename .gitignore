@@ -7,3 +7,4 @@ instance/
 *.db
 .DS_Store
 .webassets-cache/
+*.Identifier

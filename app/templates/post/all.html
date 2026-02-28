@@ -33,6 +33,7 @@
                 <th scope="col">Преподаватель</th>
                 <th scope="col">Тема</th>
                 <th scope="col">Студент</th>
+                <th scope="col">Комментарии</th>
                 {% if current_user.is_authenticated %}
                 <th scope="col">Действия</th>
                 {% endif %}
@@ -56,7 +57,12 @@
                          class="rounded-circle">
                     {{ post.student_user.name }}
                 </td>
-                {% if current_user.is_authenticated and post.teacher == current_user.id %}
+                <td>
+                    <a href="{{ url_for('post.post_detail', id=post.id) }}" class="btn btn-sm btn-info">
+                        <i class="fa fa-comments"></i> 
+                    </a>
+                </td>
+                {% if current_user.is_authenticated and (post.teacher == current_user.id or current_user.status == 'enginiger') %}
                 <td>
                     <a href="{{ url_for('post.update', id=post.id) }}" class="btn btn-sm btn-secondary">
                         <i class="fa fa-pencil"></i>
@@ -74,7 +80,6 @@
     </table>
 </div>
 {% endblock %}
-
 
 {% block script %}
     {% assets 'post_all_js' %}

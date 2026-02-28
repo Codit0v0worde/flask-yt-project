@@ -1,0 +1,54 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Управление пользователями{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Управление пользователями</h2>
+    <table class="table table-dark table-hover">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Логин</th>
+                <th>Имя</th>
+                <th>Текущий статус</th>
+                <th>Действие</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.id }}</td>
+                <td>{{ user.login }}</td>
+                <td>{{ user.name }}</td>
+                <td>
+                    {% if user.status == 'user' %}
+                        <span class="badge bg-secondary">Студент</span>
+                    {% elif user.status == 'teacher' %}
+                        <span class="badge bg-primary">Преподаватель</span>
+                    {% elif user.status == 'starosta' %}
+                        <span class="badge bg-success">Староста</span>
+                    {% elif user.status == 'enginiger' %}
+                        <span class="badge bg-danger">Суперпользователь</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <form method="post" action="{{ url_for('user.manage_users') }}" style="display:inline;">
+                        {{ form.csrf_token }}
+                        <input type="hidden" name="user_id" value="{{ user.id }}">
+                        <select name="status" class="form-select form-select-sm d-inline w-auto">
+                            <option value="user" {% if user.status == 'user' %}selected{% endif %}>Студент</option>
+                            <option value="teacher" {% if user.status == 'teacher' %}selected{% endif %}>Преподаватель</option>
+                            <option value="starosta" {% if user.status == 'starosta' %}selected{% endif %}>Староста</option>
+                            <option value="enginiger" {% if user.status == 'enginiger' %}selected{% endif %}>Суперпользователь</option>
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-warning">Изменить</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{{ url_for('post.all_posts') }}" class="btn btn-secondary">На главную</a>
+</div>
+{% endblock %}

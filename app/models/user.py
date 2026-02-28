@@ -7,13 +7,16 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 class User(db.Model, UserMixin):
+    __tablename__ = 'user'
+
     id = db.Column(db.Integer, primary_key=True)
-    status = db.Column(db.String(50), default='user')
+    status = db.Column(db.String(50), default='user')  # user, teacher, starosta
     name = db.Column(db.String(50))
-    login = db.Column(db.String(50))
+    login = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(200))
     date = db.Column(db.DateTime, default=datetime.utcnow)
     avatar = db.Column(db.String(200))
 
+    # Отношения к постам
     teacher_posts = db.relationship('Post', foreign_keys='Post.teacher', backref='teacher_user')
     student_posts = db.relationship('Post', foreign_keys='Post.student', backref='student_user')

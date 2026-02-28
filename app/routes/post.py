@@ -1,9 +1,13 @@
 from flask import Blueprint, abort, flash, render_template, request, redirect, url_for
 from flask_login import current_user, login_required
+
+from ..functions import save_comment_file
 from ..extensions import db
 from ..models.post import Post
 from ..forms import StudentForm, TeacherForm  
 from ..models.user import User
+from ..forms import CommentForm
+from ..models.comment import Comment
 
 post = Blueprint('post', __name__)
 
@@ -31,6 +35,8 @@ def all_posts():
 @post.route('/create', methods=['GET', 'POST'])
 @login_required
 def create():
+    if current_user.status not in ['teacher', 'enginiger']:
+        abort(403)   
     form = StudentForm()
     form.student.choices = [(u.id, u.name) for u in User.query.filter_by(status='user').all()]
     
@@ -53,7 +59,8 @@ def update(id):
     if not post:
         return redirect(url_for('post.all_posts'))
 
-    if post.teacher != current_user.id:
+    # Разрешить, если пользователь – автор ИЛИ суперпользователь
+    if post.teacher != current_user.id and current_user.status != 'enginiger':
         abort(403)
 
     form = StudentForm()
@@ -75,17 +82,16 @@ def update(id):
 
     return render_template('post/update.html', post=post, form=form)
         
-        
-        
 @post.route('/delete/<int:id>', methods=['POST'])
 @login_required
 def delete(id):
     post = Post.query.get(id)
     if not post:
-        abort(404)  
+        abort(404)
 
-    if post.teacher != current_user.id:
-        abort(403)  
+    if post.teacher != current_user.id and current_user.status != 'enginiger':
+        abort(403)
+
     try:
         db.session.delete(post)
         db.session.commit()
@@ -95,3 +101,37 @@ def delete(id):
         flash('Ошибка при удалении темы', 'danger')
 
     return redirect(url_for('post.all_posts'))
+
+@post.route('/post/<int:id>', methods=['GET'])
+def post_detail(id):
+    post = Post.query.get_or_404(id)
+    comments = post.comments.filter(Comment.parent_id == None).order_by(Comment.created_at.desc()).all()
+    form = CommentForm()
+    return render_template('post/detail.html', post=post, comments=comments, form=form)
+
+@post.route('/post/<int:post_id>/comment', methods=['POST'])
+@login_required
+def add_comment(post_id):
+    post = Post.query.get_or_404(post_id)
+    form = CommentForm()
+    
+    if form.validate_on_submit():
+        filename = None
+        if form.file.data:
+            filename = save_comment_file(form.file.data)
+        
+        comment = Comment(
+            content=form.content.data,
+            file_path=filename,
+            user_id=current_user.id,
+            post_id=post.id,
+            parent_id=form.parent_id.data or None
+        )
+        db.session.add(comment)
+        db.session.commit()
+        flash('Комментарий добавлен', 'success')
+    else:
+        flash('Ошибка при добавлении комментария', 'danger')
+        print(form.errors)
+    
+    return redirect(url_for('post.post_detail', id=post.id))

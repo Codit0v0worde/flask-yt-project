@@ -22,3 +22,19 @@ def recursive_flattern_iterator(d):
             yield v
         if isinstance(v,dict):
             yield from recursive_flattern_iterator(v)
+            
+def save_comment_file(file):
+    """Сохраняет файл комментария и возвращает имя файла"""
+    import os
+    import uuid
+    from werkzeug.utils import secure_filename
+    from flask import current_app
+
+    filename = secure_filename(file.filename)
+    unique_name = str(uuid.uuid4()) + '_' + filename
+    # Убедись, что папка существует
+    upload_folder = os.path.join(current_app.config['ROOT'], 'static/uploads/comments')
+    os.makedirs(upload_folder, exist_ok=True)
+    file_path = os.path.join(upload_folder, unique_name)
+    file.save(file_path)
+    return unique_name
