@@ -21,16 +21,39 @@ def all_posts():
     teachers = User.query.filter_by(status='teacher').all()
     form.teacher.choices = [(0, 'Все преподаватели')] + [(t.id, t.name) for t in teachers]
 
-    if form.validate_on_submit():  
-        teacher_id = form.teacher.data
-        if teacher_id == 0:
-            posts = Post.query.order_by(Post.date.desc()).all()
-        else:
-            posts = Post.query.filter_by(teacher=teacher_id).order_by(Post.date.desc()).all()
-    else:
-        posts = Post.query.order_by(Post.date.desc()).limit(20).all()
+    # Получаем поисковый запрос из GET-параметра
+    search_query = request.args.get('q', '').strip()
 
-    return render_template('post/all.html', posts=posts, user=User, form=form)
+    if form.validate_on_submit():
+        # Если отправлена форма фильтрации (POST)
+        teacher_id = form.teacher.data
+        # Перенаправляем на GET, сохраняя параметры
+        return redirect(url_for('post.all_posts', teacher=teacher_id, q=search_query))
+    else:
+        # При GET-запросе берём параметры из URL
+        teacher_id = request.args.get('teacher', type=int, default=0)
+
+    # Формируем запрос к базе
+    query = Post.query
+
+    # Фильтр по преподавателю
+    if teacher_id and teacher_id != 0:
+        query = query.filter_by(teacher=teacher_id)
+
+    # Поиск по названию темы (регистронезависимо)
+    if search_query:
+        query = query.filter(Post.subject.ilike(f'%{search_query}%'))
+
+    # Сортировка по дате (сначала новые)
+    query = query.order_by(Post.date.desc())
+
+    # Если нет ни фильтра, ни поиска, показываем последние 20
+    if not teacher_id and not search_query:
+        posts = query.limit(20).all()
+    else:
+        posts = query.all()
+
+    return render_template('post/all.html', posts=posts, form=form, search_query=search_query)
 
 @post.route('/create', methods=['GET', 'POST'])
 @login_required
@@ -81,7 +104,7 @@ def update(id):
         form.student.data = post.student
 
     return render_template('post/update.html', post=post, form=form)
-        
+
 @post.route('/delete/<int:id>', methods=['POST'])
 @login_required
 def delete(id):

@@ -9,9 +9,8 @@
 {% endblock %}
 
 {% block content %}
-<!-- Форма фильтрации по преподавателям -->
-<form method="post" action="{{ url_for('post.all_posts') }}" class="mb-3">
-    {{ form.hidden_tag() }}
+<!-- Форма фильтрации по преподавателям (теперь GET) -->
+<form method="get" action="{{ url_for('post.all_posts') }}" class="mb-3">
     <div class="row g-3 align-items-center">
         <div class="col-auto">
             {{ form.teacher.label(class="col-form-label") }}
@@ -23,7 +22,19 @@
             {{ form.submit(class="btn btn-primary") }}
         </div>
     </div>
+    <!-- Сохраняем поисковый запрос при фильтрации -->
+    {% if search_query %}
+    <input type="hidden" name="q" value="{{ search_query }}">
+    {% endif %}
 </form>
+
+<!-- Блок информации о поиске -->
+{% if search_query %}
+<div class="alert alert-info d-flex justify-content-between align-items-center">
+    <span>Результаты поиска по запросу: <strong>«{{ search_query }}»</strong></span>
+    <a href="{{ url_for('post.all_posts') }}" class="btn btn-sm btn-outline-secondary">Сбросить</a>
+</div>
+{% endif %}
 
 <div class="table-responsive custom-table-responsive">
     <table class="table custom-table">
@@ -74,6 +85,16 @@
                     </form>
                 </td>
                 {% endif %}
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="{% if current_user.is_authenticated %}6{% else %}5{% endif %}" class="text-center text-muted">
+                    {% if search_query %}
+                        По запросу «{{ search_query }}» ничего не найдено.
+                    {% else %}
+                        Пока нет тем.
+                    {% endif %}
+                </td>
             </tr>
             {% endfor %}
         </tbody>
