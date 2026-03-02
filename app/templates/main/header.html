@@ -1,31 +1,43 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
+        <!-- Логотип -->
         <a class="navbar-brand" href="/">
             <img src="{{ url_for('static', filename='img/diplom.jpg') }}" alt="logo" width="48" height="48" class="d-inline-block align-text-top">
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+
+        <!-- Кнопка-бургер -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
             <span class="navbar-toggler-icon"></span>
         </button>
+
         <div class="collapse navbar-collapse" id="navbarContent">
-            <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
-                <li class="nav-item"><a href="{{ url_for('post.all_posts') }}" class="nav-link active">Главная</a></li>
+            <!-- Левое меню (минимальная ширина) -->
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a href="{{ url_for('post.all_posts') }}" class="nav-link active">Главная</a>
+                </li>
                 {% if current_user.is_authenticated and current_user.status in ['teacher', 'enginiger'] %}
-                <li class="nav-item"><a href="{{ url_for('post.create') }}" class="nav-link">Добавить тему</a></li>
+                <li class="nav-item">
+                    <a href="{{ url_for('post.create') }}" class="nav-link">Добавить тему</a>
+                </li>
                 {% endif %}
             </ul>
-            <form class="d-flex" role="search">
-                <input class="form-control me-2" type="search" placeholder="Поиск" aria-label="Поиск">
+
+            <!-- Поиск (фиксированная ширина) -->
+            <form class="d-flex mx-2" style="width: 300px;" method="get" action="{{ url_for('post.all_posts') }}">
+                <input class="form-control me-2" type="search" name="q" placeholder="Поиск по темам" value="{{ request.args.get('q', '') }}">
                 <button class="btn btn-outline-light" type="submit">Найти</button>
             </form>
 
-            <div class="text-end ms-3">
+            <!-- Правый блок – занимает всё оставшееся место, элементы прижаты вправо с большими отступами -->
+            <div class="d-flex flex-grow-1 justify-content-end align-items-center gap-4 mt-2 mt-lg-0">
                 {% if current_user.is_authenticated %}
-                    <span class="me-2"> Абонент {{ current_user.login }} в сети</span>
-                    <a href="{{ url_for('user.profile') }}" class="btn btn-outline-info me-2">Профиль</a>
+                    <span class="text-white-50 fs-6">📡 {{ current_user.login }}</span>
+                    <a href="{{ url_for('user.profile') }}" class="btn btn-outline-info">Профиль</a>
                     {% if current_user.status in ['starosta', 'enginiger'] %}
-                        <a href="{{ url_for('user.manage_users') }}" class="btn btn-outline-info me-2">Управление пользователями</a>
+                        <a href="{{ url_for('user.manage_users') }}" class="btn btn-outline-info">Управление</a>
                     {% endif %}
-                    <a href="{{ url_for('user.logout') }}" class="btn btn-outline-light me-2">Выйти</a>
+                    <a href="{{ url_for('user.logout') }}" class="btn btn-outline-light">Выйти</a>
                 {% else %}
                     <a href="{{ url_for('user.login') }}" class="btn btn-outline-light me-2">Войти</a>
                     <a href="{{ url_for('user.register') }}" class="btn btn-warning">Регистрация</a>
