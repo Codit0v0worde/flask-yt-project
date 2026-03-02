@@ -9,7 +9,7 @@
 | **Backend**     | Python 3.11, Flask, SQLAlchemy, Migrate, Login, Bcrypt, WTF, Assets       |
 | **Database**    | PostgreSQL 15                                                              |
 | **Frontend**    | Bootstrap 5, Jinja2, Font Awesome 4.7, CSS, JavaScript                    |
-| **Infra**       | Docker, Docker Compose, Nginx, uWSGI, Git                                 |
+| **Infrastructure**       | Docker, Docker Compose, Nginx, uWSGI, Git                                 |
 
 ##  Функциональные возможности
 
