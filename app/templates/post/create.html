@@ -3,10 +3,48 @@
 {% block title %}Добавление темы{% endblock %}
 
 {% block content %}
-<form method="post" action="{{ url_for('post.create') }}" class="form-control d-flex flex-column gap-2">
+<form method="post" action="{{ url_for('post.create') }}" class="form-control d-flex flex-column gap-2" enctype="multipart/form-data">
     {{ form.hidden_tag() }}
+
+    <!-- Поле названия темы -->
     {{ form.subject(class="form-control", placeholder="Название предмета") }}
-    {{ form.student(class="form-control") }}
-    <input value="Добавить" type="submit" class="btn btn-success">
+    {% if form.subject.errors %}
+        <div class="text-danger">
+            {% for error in form.subject.errors %}
+                <small>{{ error }}</small><br>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Поле выбора студентов (множественный выбор через чекбоксы) -->
+    <div class="mb-3">
+        {{ form.students.label(class="form-label") }}
+        <div class="border p-3 bg-light">
+            {% for value, label, checked, _ in form.students.iter_choices() %}
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox"
+                           name="{{ form.students.name }}"
+                           value="{{ value }}"
+                           id="student-{{ value }}"
+                           {% if checked %}checked{% endif %}>
+                    <label class="form-check-label" for="student-{{ value }}">
+                        {{ label }}
+                    </label>
+                </div>
+            {% endfor %}
+        </div>
+        {% if form.students.errors %}
+            <div class="text-danger">
+                {% for error in form.students.errors %}
+                    <small>{{ error }}</small><br>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Поле для загрузки файла (если нужно) -->
+    <!-- Если в форме есть поле file, можно добавить аналогично -->
+
+    <button type="submit" class="btn btn-success">Добавить</button>
 </form>
 {% endblock %}

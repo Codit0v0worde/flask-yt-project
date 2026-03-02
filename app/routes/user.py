@@ -6,6 +6,7 @@ from ..forms import RegistrationForm , LoginForm
 from ..extensions import db , bcrypt
 from ..models.user import User
 from ..forms import ManageUserForm
+from ..models.comment import Comment
 
 user = Blueprint('user', __name__)
 
@@ -32,7 +33,6 @@ def register():
         print(form.errors)
     return render_template('user/register.html', form=form)
 
-
 @user.route('/user/login', methods=['GET','POST'])
 def login():
     form = LoginForm()
@@ -47,12 +47,10 @@ def login():
             flash("Ошибка входа. Протрите глаза и проверьте логин и пароль!", "danger")
     return render_template('user/login.html', form=form)
 
-
 @user.route('/user/logout', methods=['POST', 'GET'])
 def logout():
     logout_user()
     return redirect(url_for('post.all_posts'))
-
 
 @user.route('/manage-users', methods=['GET', 'POST'])
 @login_required
@@ -63,7 +61,6 @@ def manage_users():
 
     form = ManageUserForm()
 
-    # ОТЛАДКА: посмотрим, что пришло в POST-запросе
     if request.method == 'POST':
         print("=== POST-запрос к /manage-users ===")
         print("request.form:", dict(request.form))
@@ -96,22 +93,20 @@ def manage_users():
 
         return redirect(url_for('user.manage_users'))
     else:
-        # Если форма не валидна, выводим ошибки
         if request.method == 'POST':
             print(" Форма не валидна. Ошибки:", form.errors)
             flash('Ошибка валидации формы. Проверьте введённые данные.', 'danger')
         else:
             print("GET-запрос к /manage-users")
 
-    # Получаем всех пользователей, кроме текущего
     users = User.query.filter(User.id != current_user.id).all()
     return render_template('user/manage_users.html', users=users, form=form)
 
 @user.route('/profile', methods=['GET'])
 @login_required
 def profile():
-    return render_template('user/profile.html', user=current_user)
-
+    comments = current_user.comments.order_by(Comment.created_at.desc()).all()
+    return render_template('user/profile.html', user=current_user, comments=comments)
 
 @user.route('/profile/edit', methods=['GET', 'POST'])
 @login_required
@@ -129,7 +124,6 @@ def profile_edit():
         
         # Смена пароля (если заполнен старый и новый)
         if form.old_password.data and form.new_password.data:
-            # Проверяем старый пароль
             if bcrypt.check_password_hash(current_user.password, form.old_password.data):
                 current_user.password = bcrypt.generate_password_hash(form.new_password.data).decode('utf-8')
             else:

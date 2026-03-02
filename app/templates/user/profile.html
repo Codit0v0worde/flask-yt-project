@@ -2,11 +2,70 @@
 
 {% block title %}Профиль пользователя{% endblock %}
 
+{% block style %}
+    {{ super() }}
+    <style>
+        /* Тёмная тема для вкладок */
+        .nav-tabs {
+            border-bottom-color: #3a4042;
+        }
+        .nav-tabs .nav-link {
+            color: #aaa;
+            background-color: transparent;
+            border: none;
+        }
+        .nav-tabs .nav-link:hover {
+            color: #fff;
+            border-color: transparent;
+        }
+        .nav-tabs .nav-link.active {
+            color: #d4a373;
+            background-color: #1e2223;
+            border-color: #3a4042 #3a4042 #1e2223;
+        }
+
+        /* Тёмная тема для списка групп */
+        .list-group-item {
+            background-color: #1e2223;
+            color: #e0e0e0;
+            border-color: #3a4042;
+        }
+        .list-group-item a {
+            color: #d4a373;
+            text-decoration: none;
+        }
+        .list-group-item a:hover {
+            color: #e3b38b;
+            text-decoration: underline;
+        }
+        .badge.bg-secondary {
+            background-color: #5a6268 !important;
+            color: #fff;
+        }
+
+        /* Кнопка "Скачать файл" */
+        .btn-outline-info {
+            color: #d4a373;
+            border-color: #d4a373;
+        }
+        .btn-outline-info:hover {
+            background-color: #d4a373;
+            color: #1e2223;
+            border-color: #d4a373;
+        }
+
+        /* Отступы и общее */
+        .tab-content {
+            margin-top: 1rem;
+        }
+    </style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     <div class="row">
         <div class="col-md-4 text-center">
-            <img src="{{ url_for('static', filename='upload/' + user.avatar) }}" 
+            <img src="{{ url_for('static', filename='upload/' + (user.avatar if user.avatar else 'default.jpg')) }}" 
                  alt="Аватар" 
                  class="img-fluid rounded-circle mb-3" 
                  style="max-width: 200px;">
@@ -30,20 +89,23 @@
         <div class="col-md-8">
             <h4>Активность</h4>
             <ul class="nav nav-tabs" id="profileTabs" role="tablist">
+                {% if user.status in ['teacher', 'enginiger'] %}
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="posts-tab" data-bs-toggle="tab" data-bs-target="#posts" type="button" role="tab">Созданные темы</button>
                 </li>
+                {% endif %}
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="comments-tab" data-bs-toggle="tab" data-bs-target="#comments" type="button" role="tab">Комментарии</button>
+                    <button class="nav-link {% if user.status not in ['teacher', 'enginiger'] %}active{% endif %}" id="comments-tab" data-bs-toggle="tab" data-bs-target="#comments" type="button" role="tab">Комментарии</button>
                 </li>
             </ul>
             <div class="tab-content mt-3" id="profileTabsContent">
+                {% if user.status in ['teacher', 'enginiger'] %}
                 <div class="tab-pane fade show active" id="posts" role="tabpanel">
                     {% if user.teacher_posts %}
                         <ul class="list-group">
                             {% for post in user.teacher_posts %}
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    {{ post.subject }}
+                                    <a href="{{ url_for('post.post_detail', id=post.id) }}">{{ post.subject }}</a>
                                     <span class="badge bg-secondary">{{ post.date.strftime('%d.%m.%Y') }}</span>
                                 </li>
                             {% endfor %}
@@ -52,8 +114,25 @@
                         <p>Пока нет созданных тем.</p>
                     {% endif %}
                 </div>
-                <div class="tab-pane fade" id="comments" role="tabpanel">
-                    <p>Комментарии будут позже.</p>
+                {% endif %}
+                <div class="tab-pane fade {% if user.status not in ['teacher', 'enginiger'] %}show active{% endif %}" id="comments" role="tabpanel">
+                    {% if comments %}
+                        <ul class="list-group">
+                            {% for comment in comments %}
+                                <li class="list-group-item">
+                                    <strong>Тема:</strong> <a href="{{ url_for('post.post_detail', id=comment.post.id) }}">{{ comment.post.subject }}</a>
+                                    <br>
+                                    <span class="text-muted small">{{ comment.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+                                    <p class="mt-2">{{ comment.content|truncate(100) }}</p>
+                                    {% if comment.file_path %}
+                                        <a href="{{ url_for('static', filename='uploads/comments/' + comment.file_path) }}" target="_blank" class="btn btn-sm btn-outline-info mt-2">Скачать файл</a>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>Пока нет комментариев.</p>
+                    {% endif %}
                 </div>
             </div>
         </div>

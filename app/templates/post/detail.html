@@ -35,7 +35,19 @@
             <div class="row">
                 <div class="col-md-6">
                     <p><strong>Преподаватель:</strong> {{ post.teacher_user.name }}</p>
-                    <p><strong>Студент:</strong> {{ post.student_user.name }}</p>
+                    <p><strong>Студент(ы):</strong>
+                        {% for student in post.students %}
+                            <span>
+                                <img src="{{ url_for('static', filename='upload/' + (student.avatar if student.avatar else 'default.jpg')) }}"
+                                     alt="Студент"
+                                     width="30" height="30"
+                                     class="rounded-circle">
+                                {{ student.name }}{% if not loop.last %}, {% endif %}
+                            </span>
+                        {% else %}
+                            <span class="text-muted">Нет студентов</span>
+                        {% endfor %}
+                    </p>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <p><strong>Дата создания:</strong> {{ post.date.strftime('%d.%m.%Y %H:%M') }}</p>

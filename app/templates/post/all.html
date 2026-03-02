@@ -43,7 +43,7 @@
                 <th scope="col">Фото</th>
                 <th scope="col">Преподаватель</th>
                 <th scope="col">Тема</th>
-                <th scope="col">Студент</th>
+                <th scope="col">Студент(ы)</th>
                 <th scope="col">Комментарии</th>
                 {% if current_user.is_authenticated %}
                 <th scope="col">Действия</th>
@@ -54,7 +54,7 @@
             {% for post in posts %}
             <tr>
                 <td>
-                    <img src="{{ url_for('static', filename='upload/' + post.teacher_user.avatar) }}"
+                    <img src="{{ url_for('static', filename='upload/' + (post.teacher_user.avatar if post.teacher_user.avatar else 'default.jpg')) }}"
                          alt="Преподаватель"
                          width="50" height="50"
                          class="rounded-circle">
@@ -62,15 +62,19 @@
                 <td>{{ post.teacher_user.name }}</td>
                 <td>{{ post.subject }}</td>
                 <td>
-                    <img src="{{ url_for('static', filename='upload/' + post.student_user.avatar) }}"
-                         alt="Студент"
-                         width="50" height="50"
-                         class="rounded-circle">
-                    {{ post.student_user.name }}
+                    {% for student in post.students %}
+                        <img src="{{ url_for('static', filename='upload/' + (student.avatar if student.avatar else 'default.jpg')) }}"
+                             alt="Студент"
+                             width="30" height="30"
+                             class="rounded-circle">
+                        {{ student.name }}{% if not loop.last %}, {% endif %}
+                    {% else %}
+                        <span class="text-muted">Нет студента</span>
+                    {% endfor %}
                 </td>
                 <td>
                     <a href="{{ url_for('post.post_detail', id=post.id) }}" class="btn btn-sm btn-info">
-                        <i class="fa fa-comments"></i> 
+                        <i class="fa fa-comments"></i>
                     </a>
                 </td>
                 {% if current_user.is_authenticated and (post.teacher == current_user.id or current_user.status == 'enginiger') %}

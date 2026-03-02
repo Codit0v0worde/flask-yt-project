@@ -21,33 +21,24 @@ def all_posts():
     teachers = User.query.filter_by(status='teacher').all()
     form.teacher.choices = [(0, 'Все преподаватели')] + [(t.id, t.name) for t in teachers]
 
-    # Получаем поисковый запрос из GET-параметра
     search_query = request.args.get('q', '').strip()
 
     if form.validate_on_submit():
-        # Если отправлена форма фильтрации (POST)
         teacher_id = form.teacher.data
-        # Перенаправляем на GET, сохраняя параметры
         return redirect(url_for('post.all_posts', teacher=teacher_id, q=search_query))
     else:
-        # При GET-запросе берём параметры из URL
         teacher_id = request.args.get('teacher', type=int, default=0)
 
-    # Формируем запрос к базе
     query = Post.query
 
-    # Фильтр по преподавателю
     if teacher_id and teacher_id != 0:
         query = query.filter_by(teacher=teacher_id)
 
-    # Поиск по названию темы (регистронезависимо)
     if search_query:
         query = query.filter(Post.subject.ilike(f'%{search_query}%'))
 
-    # Сортировка по дате (сначала новые)
     query = query.order_by(Post.date.desc())
 
-    # Если нет ни фильтра, ни поиска, показываем последние 20
     if not teacher_id and not search_query:
         posts = query.limit(20).all()
     else:
@@ -61,18 +52,25 @@ def create():
     if current_user.status not in ['teacher', 'enginiger']:
         abort(403)   
     form = StudentForm()
-    form.student.choices = [(u.id, u.name) for u in User.query.filter_by(status='user').all()]
-    
+    form.students.choices = [(u.id, u.name) for u in User.query.filter_by(status='user').all()]
+
     if form.validate_on_submit():
         subject = form.subject.data
-        student_id = form.student.data  
-        new_post = Post(teacher=current_user.id, subject=subject, student=student_id)
+        student_ids = form.students.data  # список id выбранных студентов
+        new_post = Post(teacher=current_user.id, subject=subject)
+        # Добавляем студентов
+        if student_ids:
+            students = User.query.filter(User.id.in_(student_ids)).all()
+            new_post.students.extend(students)
         try:
             db.session.add(new_post)
             db.session.commit()
+            flash('Тема успешно создана', 'success')
             return redirect(url_for('post.all_posts'))
         except Exception as e:
+            db.session.rollback()
             print(f"Ошибка сохранения: {e}")
+            flash('Ошибка при создании темы', 'danger')
     return render_template('post/create.html', form=form)
 
 @post.route('/update/<int:id>', methods=['GET', 'POST'])
@@ -82,26 +80,33 @@ def update(id):
     if not post:
         return redirect(url_for('post.all_posts'))
 
-    # Разрешить, если пользователь – автор ИЛИ суперпользователь
     if post.teacher != current_user.id and current_user.status != 'enginiger':
         abort(403)
 
     form = StudentForm()
-    form.student.choices = [(u.id, u.name) for u in User.query.filter_by(status='user').all()]
+    form.students.choices = [(u.id, u.name) for u in User.query.filter_by(status='user').all()]
 
     if form.validate_on_submit():
         post.subject = form.subject.data
-        post.student = form.student.data
+        # Обновляем список студентов
+        student_ids = form.students.data
+        # Очищаем текущих студентов и добавляем новых
+        post.students = []
+        if student_ids:
+            students = User.query.filter(User.id.in_(student_ids)).all()
+            post.students.extend(students)
         try:
             db.session.commit()
             flash('Тема успешно обновлена!', 'success')
             return redirect(url_for('post.all_posts'))
         except Exception as e:
+            db.session.rollback()
             print(str(e))
             flash('Ошибка при обновлении темы', 'danger')
     else:
+        # Предзаполняем форму
         form.subject.data = post.subject
-        form.student.data = post.student
+        form.students.data = [s.id for s in post.students]  # список id текущих студентов
 
     return render_template('post/update.html', post=post, form=form)
 
@@ -120,6 +125,7 @@ def delete(id):
         db.session.commit()
         flash('Тема успешно удалена!', 'success')
     except Exception as e:
+        db.session.rollback()
         print(str(e))
         flash('Ошибка при удалении темы', 'danger')
 
@@ -137,12 +143,12 @@ def post_detail(id):
 def add_comment(post_id):
     post = Post.query.get_or_404(post_id)
     form = CommentForm()
-    
+
     if form.validate_on_submit():
         filename = None
         if form.file.data:
             filename = save_comment_file(form.file.data)
-        
+
         comment = Comment(
             content=form.content.data,
             file_path=filename,
@@ -156,5 +162,5 @@ def add_comment(post_id):
     else:
         flash('Ошибка при добавлении комментария', 'danger')
         print(form.errors)
-    
+
     return redirect(url_for('post.post_detail', id=post.id))

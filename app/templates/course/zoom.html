@@ -1,0 +1,19 @@
+{% extends 'main/base.html' %}
+
+{% block title %}{{ activity.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4 text-center">
+    <div class="card bg-dark text-white">
+        <div class="card-body">
+            <h2>{{ activity.title }}</h2>
+            <p>Ссылка на онлайн-занятие:</p>
+            <a href="{{ activity.url }}" class="btn btn-lg btn-success" target="_blank">
+                <i class="fa fa-video-camera"></i> Перейти в Zoom
+            </a>
+            <br><br>
+            <a href="{{ url_for('course.view_course', id=activity.section.course.id) }}" class="btn btn-secondary">К курсу</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

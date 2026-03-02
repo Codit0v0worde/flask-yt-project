@@ -1,0 +1,25 @@
+{% extends 'main/base.html' %}
+
+{% block title %}{{ activity.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card bg-dark text-white">
+        <div class="card-body">
+            <h2>{{ activity.title }}</h2>
+            <hr>
+            <div class="mb-3">
+                {{ activity.content|nl2br|safe }}
+            </div>
+            {% if activity.file_path %}
+                <p>
+                    <a href="{{ url_for('static', filename='uploads/activities/' + activity.file_path) }}" class="btn btn-outline-info" target="_blank">
+                        <i class="fa fa-file"></i> Скачать файл лекции
+                    </a>
+                </p>
+            {% endif %}
+            <a href="{{ url_for('course.view_course', id=activity.section.course.id) }}" class="btn btn-secondary">К курсу</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

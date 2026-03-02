@@ -1,0 +1,84 @@
+{% extends 'main/base.html' %}
+
+{% block title %}{{ activity.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card bg-dark text-white mb-4">
+        <div class="card-body">
+            <h2>{{ activity.title }}</h2>
+            <!-- Описание задания убрано, так как для практик оно не используется -->
+            {% if activity.file_path %}
+                <p><a href="{{ url_for('static', filename='uploads/activities/' + activity.file_path) }}" class="btn btn-sm btn-outline-info" target="_blank">Скачать файл задания</a></p>
+            {% endif %}
+            <hr>
+            <p><strong>Дата открытия:</strong> {{ activity.open_date.strftime('%d.%m.%Y %H:%M') if activity.open_date else 'Сразу' }}</p>
+            <p><strong>Дата закрытия:</strong> {{ activity.close_date.strftime('%d.%m.%Y %H:%M') if activity.close_date else 'Без дедлайна' }}</p>
+        </div>
+    </div>
+
+    {% if current_user.is_authenticated and current_user.status in ['user', 'starosta'] %}
+        <div class="card bg-dark text-white mb-4">
+            <div class="card-body">
+                <h4>Отправить ответ</h4>
+                <form method="post" enctype="multipart/form-data" action="{{ url_for('course.submit_assignment', activity_id=activity.id) }}">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.content.label(class="form-label") }}
+                        {{ form.content(class="form-control", rows=5) }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.file.label(class="form-label") }}
+                        {{ form.file(class="form-control") }}
+                    </div>
+                    <button type="submit" class="btn btn-success">Отправить</button>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if submissions %}
+        <h4>Ответы</h4>
+        <table class="table table-dark">
+            <thead>
+                <tr>
+                    {% if current_user.status in ['teacher', 'enginiger'] %}
+                        <th>Студент</th>
+                    {% endif %}
+                    <th>Дата</th>
+                    <th>Ответ</th>
+                    <th>Файл</th>
+                    <th>Оценка</th>
+                    <th>Комментарий</th>
+                    {% if current_user.status in ['teacher', 'enginiger'] %}
+                        <th>Действие</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for sub in submissions %}
+                <tr>
+                    {% if current_user.status in ['teacher', 'enginiger'] %}
+                        <td>{{ sub.user.name }}</td>
+                    {% endif %}
+                    <td>{{ sub.submitted_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                    <td>{{ sub.content|truncate(50) }}</td>
+                    <td>{% if sub.file_path %}<a href="{{ url_for('static', filename='uploads/submissions/' + sub.file_path) }}" target="_blank">Скачать</a>{% endif %}</td>
+                    <td>{{ sub.grade if sub.grade else '—' }}</td>
+                    <td>{{ sub.feedback if sub.feedback else '—' }}</td>
+                    {% if current_user.status in ['teacher', 'enginiger'] %}
+                        <td>
+                            <a href="{{ url_for('course.grade_submission', id=sub.id) }}" class="btn btn-sm btn-primary">Оценить</a>
+                        </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Пока нет ответов.</p>
+    {% endif %}
+
+    <a href="{{ url_for('course.view_course', id=activity.section.course.id) }}" class="btn btn-secondary">К курсу</a>
+</div>
+{% endblock %}

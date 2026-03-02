@@ -1,0 +1,31 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Оценка ответа{% endblock %}
+
+{% block content %}
+<div class="container mt-4" style="max-width: 600px;">
+    <div class="card bg-dark text-white">
+        <div class="card-body">
+            <h4>Ответ студента {{ submission.user.name }}</h4>
+            <p><strong>Ответ:</strong> {{ submission.content }}</p>
+            {% if submission.file_path %}
+                <p><a href="{{ url_for('static', filename='uploads/submissions/' + submission.file_path) }}" target="_blank">Скачать файл</a></p>
+            {% endif %}
+            <hr>
+            <form method="post">
+                {{ form.hidden_tag() }}
+                <div class="mb-3">
+                    {{ form.grade.label(class="form-label") }}
+                    {{ form.grade(class="form-control", type="number", min=1, max=10) }}
+                </div>
+                <div class="mb-3">
+                    {{ form.feedback.label(class="form-label") }}
+                    {{ form.feedback(class="form-control", rows=3) }}
+                </div>
+                <button type="submit" class="btn btn-success">Сохранить оценку</button>
+                <a href="{{ url_for('course.view_activity', id=submission.activity.id) }}" class="btn btn-secondary">Отмена</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

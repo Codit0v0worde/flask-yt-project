@@ -1,0 +1,78 @@
+{% extends 'main/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4" style="max-width: 700px;">
+    <h2>{{ title }}</h2>
+    <form method="post" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">
+            {{ form.title.label(class="form-label") }}
+            {{ form.title(class="form-control") }}
+        </div>
+        <div class="mb-3">
+            {{ form.type.label(class="form-label") }}
+            {{ form.type(class="form-select", id="activityType") }}
+        </div>
+
+        <!-- Поля для лекции -->
+        <div id="lectureFields" style="display: none;">
+            <div class="mb-3">
+                {{ form.content.label(class="form-label") }}
+                {{ form.content(class="form-control", rows=10) }}
+            </div>
+        </div>
+
+        <!-- Поля для задания (без описания) -->
+        <div id="assignmentFields" style="display: none;">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form.open_date.label(class="form-label") }}
+                    {{ form.open_date(class="form-control", type="datetime-local") }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form.close_date.label(class="form-label") }}
+                    {{ form.close_date(class="form-control", type="datetime-local") }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Поля для Zoom -->
+        <div id="zoomFields" style="display: none;">
+            <div class="mb-3">
+                {{ form.url.label(class="form-label") }}
+                {{ form.url(class="form-control", placeholder="https://...") }}
+            </div>
+        </div>
+
+        <!-- Общее поле для файла (показывается для lecture и assignment, скрыто для zoom) -->
+        <div id="fileField" class="mb-3">
+            {{ form.file.label(class="form-label") }}
+            {{ form.file(class="form-control") }}
+            <small class="text-muted">Разрешённые форматы: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, JPG, PNG, TXT</small>
+        </div>
+
+        <button type="submit" class="btn btn-success">Сохранить</button>
+        {% if section and section.course %}
+            <a href="{{ url_for('course.view_course', id=section.course.id) }}" class="btn btn-secondary">Отмена</a>
+        {% else %}
+            <a href="{{ url_for('course.list_courses') }}" class="btn btn-secondary">К списку курсов</a>
+        {% endif %}
+    </form>
+</div>
+
+<script>
+    function toggleFields() {
+        const type = document.getElementById('activityType').value;
+        document.getElementById('lectureFields').style.display = (type === 'lecture') ? 'block' : 'none';
+        document.getElementById('assignmentFields').style.display = (type === 'assignment') ? 'block' : 'none';
+        document.getElementById('zoomFields').style.display = (type === 'zoom') ? 'block' : 'none';
+        // Поле файла показываем для lecture и assignment, скрываем для zoom
+        document.getElementById('fileField').style.display = (type === 'zoom') ? 'none' : 'block';
+    }
+
+    document.getElementById('activityType').addEventListener('change', toggleFields);
+    window.onload = toggleFields;
+</script>
+{% endblock %}

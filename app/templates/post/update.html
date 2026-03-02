@@ -2,24 +2,63 @@
 
 {% block title %}Редактирование темы{% endblock %}
 
+{% block style %}
+    {{ super() }}
+    <style>
+        /* Делаем текст имён студентов темнее (тёмно-серый) */
+        .student-label {
+            color: #333333 !important;
+        }
+    </style>
+{% endblock %}
+
 {% block content %}
-<form method="post" class="form-control d-flex flex-column gap-2">
-    {{ form.hidden_tag() }}
-    {{ form.subject(class="form-control", placeholder="Название предмета") }}
-    {% if form.subject.errors %}
-        <div class="text-danger">
-            {% for error in form.subject.errors %}<small>{{ error }}</small><br>{% endfor %}
-        </div>
-    {% endif %}
+<div class="container mt-4" style="max-width: 700px;">
+    <h2>Редактирование темы</h2>
+    <form method="post" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
 
-    {{ form.student(class="form-control") }}
-    {% if form.student.errors %}
-        <div class="text-danger">
-            {% for error in form.student.errors %}<small>{{ error }}</small><br>{% endfor %}
+        <!-- Поле названия темы -->
+        <div class="mb-3">
+            {{ form.subject.label(class="form-label") }}
+            {{ form.subject(class="form-control", placeholder="Название предмета") }}
+            {% if form.subject.errors %}
+                <div class="text-danger">
+                    {% for error in form.subject.errors %}
+                        <small>{{ error }}</small><br>
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
-    {% endif %}
 
-    <input type="submit" value="Обновить" class="btn btn-success">
-    <a href="{{ url_for('post.all_posts') }}" class="btn btn-secondary">Отмена</a>
-</form>
+        <!-- Поле выбора студентов (множественный выбор через чекбоксы) -->
+        <div class="mb-3">
+            {{ form.students.label(class="form-label") }}
+            <div class="border p-3 bg-light">
+                {% for value, label, checked, _ in form.students.iter_choices() %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox"
+                               name="{{ form.students.name }}"
+                               value="{{ value }}"
+                               id="student-{{ value }}"
+                               {% if checked %}checked{% endif %}>
+                        <label class="form-check-label student-label" for="student-{{ value }}">
+                            {{ label }}
+                        </label>
+                    </div>
+                {% endfor %}
+            </div>
+            {% if form.students.errors %}
+                <div class="text-danger">
+                    {% for error in form.students.errors %}
+                        <small>{{ error }}</small><br>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-success">Сохранить</button>
+        <a href="{{ url_for('post.all_posts') }}" class="btn btn-secondary">Отмена</a>
+    </form>
+</div>
 {% endblock %}

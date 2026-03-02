@@ -4,6 +4,8 @@ from .config import Config
 from .bundles import bundles, register_bundles
 from .routes.user import user
 from .routes.post import post
+from .routes.course import course
+import pytz  # для работы с часовыми поясами
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -11,6 +13,7 @@ def create_app(config_class=Config):
 
     app.register_blueprint(user)
     app.register_blueprint(post)
+    app.register_blueprint(course)
 
     db.init_app(app)
     migrate.init_app(app, db)
@@ -25,14 +28,22 @@ def create_app(config_class=Config):
     # ASSETS
     register_bundles(assets, bundles)
 
-    # Добавляем фильтр nl2br для Jinja2
+    # Фильтр nl2br (замена переносов строк на <br>)
     def nl2br(value):
-        """Заменяет символы новой строки на <br>"""
         if value:
             return value.replace('\n', '<br>')
         return ''
-
     app.jinja_env.filters['nl2br'] = nl2br
+
+    # Фильтр для отображения дат в московском времени
+    def moscow_datetime(value):
+        if not value:
+            return ''
+        # Предполагаем, что дата в БД хранится в UTC (без таймзоны)
+        utc_dt = pytz.utc.localize(value)
+        moscow_dt = utc_dt.astimezone(pytz.timezone('Europe/Moscow'))
+        return moscow_dt.strftime('%d.%m.%Y %H:%M')
+    app.jinja_env.filters['moscow'] = moscow_datetime
 
     with app.app_context():
         db.create_all()
